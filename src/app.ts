@@ -2,6 +2,18 @@
 /* eslint-disable @typescript-eslint/no-empty-function */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 
+// Drag and Drop interfaces
+interface Draggable {
+	dragStartHandler(event: DragEvent): void;
+	dragEndHandler(event: DragEvent): void;
+}
+
+interface DragTarget {
+	dragOverHandler(event: DragEvent): void;
+	dragHandler(event: DragEvent): void;
+	dragLeaveHandler(event: DragEvent): void;
+}
+
 // class Project
 enum ProjectStatus {
 	Active,
@@ -139,8 +151,12 @@ abstract class Component<T extends HTMLElement, U extends HTMLElement> {
 	abstract configure(): void;
 }
 
-class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
+class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> implements Draggable {
 	private project: Project;
+
+	get person() {
+		return this.project.people > 1 ? 'Persons' : 'Person';
+	}
 
 	constructor(hostId: string, project: Project) {
 		super('single-project', hostId, false, project.id);
@@ -149,11 +165,23 @@ class ProjectItem extends Component<HTMLUListElement, HTMLLIElement> {
 		this.configure();
 		this.renderContent();
 	}
-	configure() {}
+
+	@AutoBind
+	dragStartHandler(event: DragEvent) {
+		console.log(event);
+	}
+
+	@AutoBind
+	dragEndHandler(_: DragEvent) {}
+
+	configure() {
+		this.element.addEventListener('dragstart', this.dragStartHandler);
+		this.element.addEventListener('dragend', this.dragEndHandler);
+	}
 
 	renderContent() {
 		this.element.querySelector('h2')!.textContent = this.project.title;
-		this.element.querySelector('h3')!.textContent = 'Number of People: ' + this.project.people;
+		this.element.querySelector('h3')!.textContent = this.project.people + ' ' + this.person + ' Assigned';
 		this.element.querySelector('p')!.textContent = this.project.description;
 	}
 }
